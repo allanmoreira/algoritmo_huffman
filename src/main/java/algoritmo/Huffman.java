@@ -8,6 +8,8 @@ import java.util.*;
 public class Huffman {
 
     private List<Nodo> listaRaizes;
+    private HashMap<Character, String> codigos;
+    private HashMap<Character, Integer> frequencias;
 
     private class Nodo {
         Nodo direito;
@@ -32,18 +34,38 @@ public class Huffman {
         while(listaRaizes.size() > 1){
             Nodo menor1 = listaRaizes.remove(listaRaizes.size()-1);
             Nodo menor2 = listaRaizes.remove(listaRaizes.size()-1);
-
-//            if(menor1.frequencia == menor2.frequencia)
-//                        if(raiz.caracter != '*')
-//                raiz = unirArvores(menor1, menor2);
-//            else
-                raiz = unirArvores(menor2, menor1);
+            raiz = unirArvores(menor2, menor1);
 
             listaRaizes.add(raiz);
-//            if(raiz.caracter != '*')
             insertionSortDesc(listaRaizes);
 
             IMPRIME_ARVORE_TEST();
+
+            geraStringBinario();
+        }
+
+        for (Character c : codigos.keySet()) {
+            System.out.print(c + "=" + codigos.get(c) + ", ");
+        }
+    }
+
+    private void geraStringBinario(){
+        codigos = new HashMap<Character, String>();
+        for (Nodo raiz : listaRaizes) {
+            geraStringBinario0(raiz, new StringBuilder());
+        }
+    }
+
+    private void geraStringBinario0(Nodo nodo, StringBuilder sb) {
+        if(nodo.caracter != '*')
+            codigos.put(nodo.caracter, sb.toString());
+        if(nodo.esquerdo != null){
+            sb.append("0");
+            geraStringBinario0(nodo.esquerdo, sb);
+        }
+        else if(nodo.direito != null){
+            sb.append("1");
+            geraStringBinario0(nodo.direito, sb);
         }
     }
 
@@ -56,8 +78,14 @@ public class Huffman {
 
     private Nodo unirArvores(Nodo maior, Nodo menor){
         Nodo raiz = new Nodo('*', maior.frequencia + menor.frequencia);
-        raiz.esquerdo = maior;
-        raiz.direito = menor;
+        if(menor.caracter != '*') {
+            raiz.esquerdo = maior;
+            raiz.direito = menor;
+        }
+        else {
+            raiz.esquerdo = menor;
+            raiz.direito = maior;
+        }
         return raiz;
     }
 
@@ -96,18 +124,18 @@ public class Huffman {
     }
 
     private void geraRaizes(String palavra){
-        HashMap<Character, Integer> raizes = new HashMap<Character, Integer>();
+        frequencias = new HashMap<Character, Integer>();
         for (int i = 0; i < palavra.length(); i++) {
             char letra = palavra.charAt(i);
-            if(raizes.containsKey(letra))
-                raizes.put(letra, raizes.get(letra) + 1);
+            if(frequencias.containsKey(letra))
+                frequencias.put(letra, frequencias.get(letra) + 1);
             else {
-                raizes.put(letra, 1);
+                frequencias.put(letra, 1);
             }
         }
         listaRaizes = new ArrayList<Nodo>();
-        for (char letra: raizes.keySet()) {
-            listaRaizes.add(new Nodo(letra, raizes.get(letra)));
+        for (char letra: frequencias.keySet()) {
+            listaRaizes.add(new Nodo(letra, frequencias.get(letra)));
             insertionSortDesc(listaRaizes);
         }
     }
