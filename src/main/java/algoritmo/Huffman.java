@@ -78,8 +78,8 @@ public class Huffman {
      * Une as duas árvores escolhidas como as menores, adicionando-as na árvore final.
      */
     private Nodo adicionarRaizNaArvore(Nodo maior, Nodo menor){
-        Nodo raiz = new Nodo('*', maior.frequencia + menor.frequencia);
-        if(menor.caracter != '*') {
+        Nodo raiz = new Nodo(' ', maior.frequencia + menor.frequencia);
+        if(menor.caracter != ' ') {
             raiz.esquerdo = maior;
             raiz.direito = menor;
         }
@@ -101,7 +101,7 @@ public class Huffman {
 
     private void geraStringBinario0(Nodo nodo, StringBuilder sb) {
         if(nodo != null){
-            if(nodo.caracter != '*') {
+            if(nodo.caracter != ' ') {
                 codigos.put(nodo.caracter, sb.toString());
             }
             if(nodo.esquerdo != null) {
@@ -149,13 +149,13 @@ public class Huffman {
 
         while(!fila.isEmpty()){
             Nodo n = fila.remove();
-            if(n.caracter != '*')
+            if(n.caracter != ' ')
                 nodo = "\""+n.caracter+","+n.frequencia+"\"";
             else
                 nodo = "\""+n.frequencia+"\"";
 
             if(n.esquerdo != null) {
-                if(n.esquerdo.caracter != '*')
+                if(n.esquerdo.caracter != ' ')
                     aux = "\""+n.esquerdo.caracter+","+n.frequencia+"\"\n";
                 else
                     aux = "\""+n.esquerdo.frequencia+"\"\n";
@@ -164,7 +164,7 @@ public class Huffman {
                 fila.add(n.esquerdo);
             }
             if(n.direito != null) {
-                if(n.direito.caracter != '*')
+                if(n.direito.caracter != ' ')
                     aux = "\""+n.direito.caracter+","+n.frequencia+"\"\n";
                 else
                     aux = "\""+n.direito.frequencia+"\"\n";
@@ -176,28 +176,5 @@ public class Huffman {
         sb.delete(sb.length()-2, sb.length());
         sb.append("\n}");
         return sb.toString();
-    }
-
-    /*--------------------------AUXILIARES--------------------------------------------*/
-
-    private void IMPRIME_ARVORE_TEST() {
-        System.out.print("Raízes = ");
-        imprimeRaizes();
-        for (Nodo n : listaRaizes)
-//            System.out.println(imprimeArvore(n));
-            System.out.println("-------------------------------------------");
-    }
-
-
-    public void imprimeRaizes(){
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
-
-        for (Nodo n : listaRaizes)
-            sb.append(n.caracter).append("=").append(n.frequencia).append(", ");
-
-        sb.delete(sb.length()-2, sb.length());
-        sb.append("}");
-        System.out.println(sb.toString());
     }
 }
