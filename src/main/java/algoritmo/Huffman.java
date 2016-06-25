@@ -215,19 +215,42 @@ public class Huffman {
         return sb.toString();
     }
 
+<<<<<<< HEAD
     public void escreveArquivoBinario () {
         String caminhoArquivo = caminhoArquivoDeTeste;
+=======
+    private void escreveArquivoBinario (String caminhoArquivo) {
+        String caminhoArquivoComtexto = caminhoArquivo+".txt";
+>>>>>>> 094a7a7132d3406cbea2277314c975ecac1d1d71
 
         byte[] bytes = new byte[stringBinaria.length];
         for (int i = 0; i < bytes.length; i++)
             bytes[i] = (byte) stringBinaria[i];
 
         try {
+<<<<<<< HEAD
             File file = new File(caminhoArquivo);
             FileOutputStream fileOuputStream = new FileOutputStream(file);
             fileOuputStream.write(bytes);
             fileOuputStream.close();
 
+=======
+            // Gera um novo arquivo, e escreve dentro dele a palavra e o código binário
+
+
+            FileWriter fileWriter = new FileWriter(caminhoArquivoComtexto);
+            fileWriter.write(palavra);
+            fileWriter.close();
+
+            FileOutputStream fileOuputStream = new FileOutputStream(caminhoArquivo);
+
+            fileOuputStream.write(bytes);
+            fileOuputStream.close();
+            File file = new File(caminhoArquivoComtexto);
+            file.delete();
+
+            System.out.println("Bytes escritos no arquivo: " + Arrays.toString(bytes));
+>>>>>>> 094a7a7132d3406cbea2277314c975ecac1d1d71
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -235,8 +258,13 @@ public class Huffman {
         }
     }
 
+<<<<<<< HEAD
     public byte[] leArquivoBinario () {
         String caminhoArquivo = caminhoArquivoDeTeste;
+=======
+    private void leArquivoBinario (String caminhoArquivo) {
+        String caminhoArquivoComtexto = caminhoArquivo+".txt";
+>>>>>>> 094a7a7132d3406cbea2277314c975ecac1d1d71
         FileInputStream fileInputStream=null;
 
         File file = new File(caminhoArquivo);
@@ -244,10 +272,19 @@ public class Huffman {
         byte[] bytes = new byte[(int) file.length()];
 
         try {
-            fileInputStream = new FileInputStream(file);
+            fileInputStream = new FileInputStream(caminhoArquivo);
             fileInputStream.read(bytes);
             fileInputStream.close();
 
+<<<<<<< HEAD
+=======
+            FileWriter fileWriter = new FileWriter(caminhoArquivoComtexto);
+            fileWriter.write(palavra);
+            fileWriter.close();
+
+            System.out.println("Bytes lidos do arquivo:    " + Arrays.toString(bytes));
+
+>>>>>>> 094a7a7132d3406cbea2277314c975ecac1d1d71
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
