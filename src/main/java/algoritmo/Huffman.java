@@ -1,5 +1,6 @@
 package algoritmo;
 
+import java.io.*;
 import java.util.*;
 
 /**
@@ -8,8 +9,10 @@ import java.util.*;
 public class Huffman {
 
     private Nodo raiz;
+    private String palavra;
+    private int[] stringBinaria;
     private List<Nodo> listaRaizes;
-    private HashMap<Character, String> codigos;
+    private HashMap<Character, String> codigos; // HashMap que sabe o código binário de cada caractere
     private HashMap<Character, Integer> frequencias; // HashMap que sabe a frequência de cada caractere
 
     private class Nodo {
@@ -25,11 +28,17 @@ public class Huffman {
     }
 
     public void comprime(String palavra) {
+        this.palavra = palavra;
         frequenciaCaractere(palavra);
         geraRaizes();
         unirArvores();
-        geraStringBinario();
+        codificaPalavra();
         System.out.println(geraGraphviz());
+        geraStringBinaria();
+        String diretorioProjeto = System.getProperty("user.dir")+File.separator+"teste_binario"+File.separator;
+
+        escreveArquivoBinario(diretorioProjeto + "test_file.txt");
+//        leArquivoBinario(diretorioProjeto + "test_file");
     }
 
     /**
@@ -91,29 +100,50 @@ public class Huffman {
     }
 
     /**
+     * Gera o código binário de cada caractere.
      * Percorre a ordem em pŕe ordem, e a cada vez que percorre o próximo nodo, adiciona 0 se for pra esquerda e 1 à direita.
      * Quando chega na folha, remove o último bit da String para poder prosseguir.
      */
-    private void geraStringBinario(){
+    private void codificaPalavra(){
         codigos = new HashMap<Character, String>();
-        geraStringBinario0(raiz, new StringBuilder());
+        codificaPalavra0(raiz, new StringBuilder());
     }
 
-    private void geraStringBinario0(Nodo nodo, StringBuilder sb) {
+    private void codificaPalavra0(Nodo nodo, StringBuilder sb) {
         if(nodo != null){
             if(nodo.caracter != ' ') {
                 codigos.put(nodo.caracter, sb.toString());
             }
             if(nodo.esquerdo != null) {
-                geraStringBinario0(nodo.esquerdo, sb.append("0"));
+                codificaPalavra0(nodo.esquerdo, sb.append("0"));
                 sb.setLength(sb.length()-1);
             }
             if(nodo.direito != null) {
-                geraStringBinario0(nodo.direito, sb.append("1"));
+                codificaPalavra0(nodo.direito, sb.append("1"));
                 sb.setLength(sb.length()-1);
             }
         }
 
+    }
+
+    /**
+     * Gera um array de inteiros que representa o código binário da árvore
+     */
+    private void geraStringBinaria(){
+        // Gera um array com todos os caracteres da palavra inicial
+        char[] chars = palavra.toCharArray();
+        StringBuilder sb = new StringBuilder();
+
+        // Para cada caractere, adiciona na StringBuilder o código em binário referente àquela caractere
+        for (char c : chars)
+            sb.append(codigos.get(c));
+
+        // Transforma a StringBuilder de binparios em um array de inteiros
+        chars = sb.toString().toCharArray();
+        stringBinaria = new int[sb.length()];
+        for (int i = 0; i < chars.length; i++) {
+            stringBinaria[i] = Integer.parseInt(String.valueOf(chars[i]));
+        }
     }
 
     /**
@@ -176,5 +206,59 @@ public class Huffman {
         sb.delete(sb.length()-2, sb.length());
         sb.append("\n}");
         return sb.toString();
+    }
+
+    private void escreveArquivoBinario (String caminhoArquivo) {
+        byte[] bytes = new byte[stringBinaria.length];
+        for (int i = 0; i < bytes.length; i++) {
+            bytes[i] = (byte) stringBinaria[i];
+        }
+
+//        FileOutputStream fileOuputStream;
+
+        try {
+            // Gera um novo arquivo, e escreve dentro dele a palavra e o código binário
+
+            FileWriter fileWriter = new FileWriter(caminhoArquivo);
+            fileWriter.write(palavra + "\n");
+
+            for (int b : stringBinaria) {
+                fileWriter.write(b);
+            }
+            fileWriter.close();
+
+//            File file = new File(caminhoArquivo);
+//            FileOutputStream fileOuputStream = new FileOutputStream(file);
+//
+//            fileOuputStream.write(bytes);
+//            fileOuputStream.close();
+
+            System.out.println("Bytes escritos no arquivo: " + Arrays.toString(bytes));
+        } catch (FileNotFoundException e) {
+            System.out.println(e.getMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void leArquivoBinario (String caminhoArquivo) {
+        FileInputStream fileInputStream=null;
+
+        File file = new File(caminhoArquivo);
+
+        byte[] bytes = new byte[(int) file.length()];
+
+        try {
+            fileInputStream = new FileInputStream(file);
+            fileInputStream.read(bytes);
+            fileInputStream.close();
+
+            System.out.println("Bytes lidos do arquivo:    " + Arrays.toString(bytes));
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
