@@ -14,15 +14,16 @@ public class Huffman {
     private List<Nodo> listaRaizes;
     private HashMap<Character, String> codigos; // HashMap que sabe o código binário de cada caractere
     private HashMap<Character, Integer> frequencias; // HashMap que sabe a frequência de cada caractere
+    private static String caminhoArquivoDeTeste = System.getProperty("user.dir")+File.separator+"teste_binario"+File.separator+"teste_arquivo";
 
     private class Nodo {
         Nodo direito;
         Nodo esquerdo;
-        char caracter;
+        char caractere;
         int frequencia;
 
-        public Nodo (char caracter, int frequencia) {
-            this.caracter = caracter;
+        public Nodo (char caractere, int frequencia) {
+            this.caractere = caractere;
             this.frequencia = frequencia;
         }
     }
@@ -32,13 +33,8 @@ public class Huffman {
         frequenciaCaractere(palavra);
         geraRaizes();
         unirArvores();
-        codificaPalavra();
-        System.out.println(geraGraphviz());
-        geraStringBinaria();
-        String diretorioProjeto = System.getProperty("user.dir")+File.separator+"teste_binario"+File.separator;
-
-        escreveArquivoBinario(diretorioProjeto + "test_file.txt");
-//        leArquivoBinario(diretorioProjeto + "test_file");
+        codificaCaractere();
+        System.out.println(geraStringBinaria());
     }
 
     /**
@@ -88,7 +84,7 @@ public class Huffman {
      */
     private Nodo adicionarRaizNaArvore(Nodo maior, Nodo menor){
         Nodo raiz = new Nodo(' ', maior.frequencia + menor.frequencia);
-        if(menor.caracter != ' ') {
+        if(menor.caractere != ' ') {
             raiz.esquerdo = maior;
             raiz.direito = menor;
         }
@@ -104,22 +100,22 @@ public class Huffman {
      * Percorre a ordem em pŕe ordem, e a cada vez que percorre o próximo nodo, adiciona 0 se for pra esquerda e 1 à direita.
      * Quando chega na folha, remove o último bit da String para poder prosseguir.
      */
-    private void codificaPalavra(){
+    private void codificaCaractere(){
         codigos = new HashMap<Character, String>();
-        codificaPalavra0(raiz, new StringBuilder());
+        codificaCaractere0(raiz, new StringBuilder());
     }
 
-    private void codificaPalavra0(Nodo nodo, StringBuilder sb) {
+    private void codificaCaractere0(Nodo nodo, StringBuilder sb) {
         if(nodo != null){
-            if(nodo.caracter != ' ') {
-                codigos.put(nodo.caracter, sb.toString());
+            if(nodo.caractere != ' ') {
+                codigos.put(nodo.caractere, sb.toString());
             }
             if(nodo.esquerdo != null) {
-                codificaPalavra0(nodo.esquerdo, sb.append("0"));
+                codificaCaractere0(nodo.esquerdo, sb.append("0"));
                 sb.setLength(sb.length()-1);
             }
             if(nodo.direito != null) {
-                codificaPalavra0(nodo.direito, sb.append("1"));
+                codificaCaractere0(nodo.direito, sb.append("1"));
                 sb.setLength(sb.length()-1);
             }
         }
@@ -129,7 +125,7 @@ public class Huffman {
     /**
      * Gera um array de inteiros que representa o código binário da árvore
      */
-    private void geraStringBinaria(){
+    private String geraStringBinaria(){
         // Gera um array com todos os caracteres da palavra inicial
         char[] chars = palavra.toCharArray();
         StringBuilder sb = new StringBuilder();
@@ -138,12 +134,26 @@ public class Huffman {
         for (char c : chars)
             sb.append(codigos.get(c));
 
+//        System.out.println(sb.toString());
+
         // Transforma a StringBuilder de binparios em um array de inteiros
         chars = sb.toString().toCharArray();
         stringBinaria = new int[sb.length()];
         for (int i = 0; i < chars.length; i++) {
             stringBinaria[i] = Integer.parseInt(String.valueOf(chars[i]));
         }
+        return "Codificação da palavra: " + sb.toString();
+    }
+
+    public void decodificaCodigoBinario(byte[] byteArray){
+        StringBuilder sb = new StringBuilder();
+        String s = new String(byteArray);
+        System.out.println(s);
+        char[] chars = s.toCharArray();
+        for (char b : chars) {
+            sb.append(codigos.get(b));
+        }
+        System.out.println(sb.toString());
     }
 
     /**
@@ -179,14 +189,11 @@ public class Huffman {
 
         while(!fila.isEmpty()){
             Nodo n = fila.remove();
-            if(n.caracter != ' ')
-                nodo = "\""+n.caracter+","+n.frequencia+"\"";
-            else
-                nodo = "\""+n.frequencia+"\"";
+            nodo = "\""+n.frequencia+"\"";
 
             if(n.esquerdo != null) {
-                if(n.esquerdo.caracter != ' ')
-                    aux = "\""+n.esquerdo.caracter+","+n.frequencia+"\"\n";
+                if(n.esquerdo.caractere != ' ')
+                    aux = "\""+n.esquerdo.caractere +","+n.esquerdo.frequencia+"\"\n";
                 else
                     aux = "\""+n.esquerdo.frequencia+"\"\n";
 
@@ -194,8 +201,8 @@ public class Huffman {
                 fila.add(n.esquerdo);
             }
             if(n.direito != null) {
-                if(n.direito.caracter != ' ')
-                    aux = "\""+n.direito.caracter+","+n.frequencia+"\"\n";
+                if(n.direito.caractere != ' ')
+                    aux = "\""+n.direito.caractere +","+n.direito.frequencia+"\"\n";
                 else
                     aux = "\""+n.direito.frequencia+"\"\n";
 
@@ -208,40 +215,28 @@ public class Huffman {
         return sb.toString();
     }
 
-    private void escreveArquivoBinario (String caminhoArquivo) {
-        byte[] bytes = new byte[stringBinaria.length];
-        for (int i = 0; i < bytes.length; i++) {
-            bytes[i] = (byte) stringBinaria[i];
-        }
+    public void escreveArquivoBinario () {
+        String caminhoArquivo = caminhoArquivoDeTeste;
 
-//        FileOutputStream fileOuputStream;
+        byte[] bytes = new byte[stringBinaria.length];
+        for (int i = 0; i < bytes.length; i++)
+            bytes[i] = (byte) stringBinaria[i];
 
         try {
-            // Gera um novo arquivo, e escreve dentro dele a palavra e o código binário
+            File file = new File(caminhoArquivo);
+            FileOutputStream fileOuputStream = new FileOutputStream(file);
+            fileOuputStream.write(bytes);
+            fileOuputStream.close();
 
-            FileWriter fileWriter = new FileWriter(caminhoArquivo);
-            fileWriter.write(palavra + "\n");
-
-            for (int b : stringBinaria) {
-                fileWriter.write(b);
-            }
-            fileWriter.close();
-
-//            File file = new File(caminhoArquivo);
-//            FileOutputStream fileOuputStream = new FileOutputStream(file);
-//
-//            fileOuputStream.write(bytes);
-//            fileOuputStream.close();
-
-            System.out.println("Bytes escritos no arquivo: " + Arrays.toString(bytes));
         } catch (FileNotFoundException e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void leArquivoBinario (String caminhoArquivo) {
+    public byte[] leArquivoBinario () {
+        String caminhoArquivo = caminhoArquivoDeTeste;
         FileInputStream fileInputStream=null;
 
         File file = new File(caminhoArquivo);
@@ -253,12 +248,12 @@ public class Huffman {
             fileInputStream.read(bytes);
             fileInputStream.close();
 
-            System.out.println("Bytes lidos do arquivo:    " + Arrays.toString(bytes));
-
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        return bytes;
     }
 }
