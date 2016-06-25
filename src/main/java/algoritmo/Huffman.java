@@ -37,8 +37,8 @@ public class Huffman {
         geraStringBinaria();
         String diretorioProjeto = System.getProperty("user.dir")+File.separator+"teste_binario"+File.separator;
 
-        escreveArquivoBinario(diretorioProjeto + "test_file.txt");
-//        leArquivoBinario(diretorioProjeto + "test_file");
+//        escreveArquivoBinario(diretorioProjeto + "test_file");
+        leArquivoBinario(diretorioProjeto + "test_file");
     }
 
     /**
@@ -209,6 +209,8 @@ public class Huffman {
     }
 
     private void escreveArquivoBinario (String caminhoArquivo) {
+        String caminhoArquivoComtexto = caminhoArquivo+".txt";
+
         byte[] bytes = new byte[stringBinaria.length];
         for (int i = 0; i < bytes.length; i++) {
             bytes[i] = (byte) stringBinaria[i];
@@ -219,19 +221,17 @@ public class Huffman {
         try {
             // Gera um novo arquivo, e escreve dentro dele a palavra e o código binário
 
-            FileWriter fileWriter = new FileWriter(caminhoArquivo);
-            fileWriter.write(palavra + "\n");
 
-            for (int b : stringBinaria) {
-                fileWriter.write(b);
-            }
+            FileWriter fileWriter = new FileWriter(caminhoArquivoComtexto);
+            fileWriter.write(palavra);
             fileWriter.close();
 
-//            File file = new File(caminhoArquivo);
-//            FileOutputStream fileOuputStream = new FileOutputStream(file);
-//
-//            fileOuputStream.write(bytes);
-//            fileOuputStream.close();
+            FileOutputStream fileOuputStream = new FileOutputStream(caminhoArquivo);
+
+            fileOuputStream.write(bytes);
+            fileOuputStream.close();
+            File file = new File(caminhoArquivoComtexto);
+            file.delete();
 
             System.out.println("Bytes escritos no arquivo: " + Arrays.toString(bytes));
         } catch (FileNotFoundException e) {
@@ -242,6 +242,7 @@ public class Huffman {
     }
 
     private void leArquivoBinario (String caminhoArquivo) {
+        String caminhoArquivoComtexto = caminhoArquivo+".txt";
         FileInputStream fileInputStream=null;
 
         File file = new File(caminhoArquivo);
@@ -249,9 +250,13 @@ public class Huffman {
         byte[] bytes = new byte[(int) file.length()];
 
         try {
-            fileInputStream = new FileInputStream(file);
+            fileInputStream = new FileInputStream(caminhoArquivo);
             fileInputStream.read(bytes);
             fileInputStream.close();
+
+            FileWriter fileWriter = new FileWriter(caminhoArquivoComtexto);
+            fileWriter.write(palavra);
+            fileWriter.close();
 
             System.out.println("Bytes lidos do arquivo:    " + Arrays.toString(bytes));
 
