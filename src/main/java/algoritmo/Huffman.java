@@ -34,7 +34,9 @@ public class Huffman {
         frequenciaCaractere(palavra);
         geraRaizes();
         unirArvores();
+        codificaCaractere();
         codificaPalavra();
+        escreveArquivoBinario();
     }
 
     /**
@@ -101,7 +103,6 @@ public class Huffman {
      * gera um arquivo com esse código binário com o método escreveArquivoBinario.
      */
     private void codificaPalavra(){
-        codificaCaractere();
 
         // Gera um array com todos os caracteres da palavra inicial
         char[] chars = palavra.toCharArray();
@@ -119,7 +120,7 @@ public class Huffman {
         for (int i = 0; i < chars.length; i++) {
             stringDeBits[i] = Integer.parseInt(String.valueOf(chars[i]));
         }
-        escreveArquivoBinario();
+
         System.out.println("Codificação da palavra:   " + sb.toString());
     }
 
