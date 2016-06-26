@@ -10,10 +10,11 @@ public class Huffman {
 
     private Nodo raiz;
     private String palavra;
-    private int[] stringBinaria;
+    private int[] stringDeBits; // Representação da palavra em bits
     private List<Nodo> listaRaizes;
-    private HashMap<Character, String> codigos; // HashMap que sabe o código binário de cada caractere
-    private HashMap<Character, Integer> frequencias; // HashMap que sabe a frequência de cada caractere
+    private HashMap<Character, String> tabelaDeCodigosDosCaracteres; // HashMap que sabe o código binário de cada caractere
+    private HashMap<String, Character> tabelaDeCaracteresDosCodigos; // HashMap que sabe o caractere de cada código binário
+    private HashMap<Character, Integer> tabelaDeFrequencias; // HashMap que sabe a frequência de cada caractere
     private static String caminhoArquivoDeTeste = System.getProperty("user.dir")+File.separator+"teste_binario"+File.separator+"teste_arquivo";
 
     private class Nodo {
@@ -28,45 +29,44 @@ public class Huffman {
         }
     }
 
-    public void comprime(String palavra) {
+    public void codifica(String palavra) {
         this.palavra = palavra;
         frequenciaCaractere(palavra);
         geraRaizes();
         unirArvores();
-        codificaCaractere();
-        System.out.println(geraStringBinaria());
+        codificaPalavra();
     }
 
     /**
-     * Verifica a frequência de cada caractere e insere o par caractere/frequencia em um HashMap chamado frequencias
+     * Verifica a frequência de cada caractere e insere o par caractere/frequencia em um HashMap chamado tabelaDeFrequencias
      */
     private void frequenciaCaractere(String palavra){
-        frequencias = new HashMap<Character, Integer>();
+        tabelaDeFrequencias = new HashMap<Character, Integer>();
         for (int i = 0; i < palavra.length(); i++) {
             char letra = palavra.charAt(i);
-            if(frequencias.containsKey(letra))
-                frequencias.put(letra, frequencias.get(letra) + 1);
+            if(tabelaDeFrequencias.containsKey(letra))
+                tabelaDeFrequencias.put(letra, tabelaDeFrequencias.get(letra) + 1);
             else {
-                frequencias.put(letra, 1);
+                tabelaDeFrequencias.put(letra, 1);
             }
         }
     }
 
     /**
-     * Pega cada par do HashMap @frequencias e os insere em uma lista de raízes chamada @listaRaizes.
-     *
+     * Pega cada par do HashMap @tabelaDeFrequencias e os insere em uma lista de raízes chamada @listaRaizes.
      * A cada nova raiz inserida na lista, utiliza o insertionSort para manter a lista ordenda em ordem decrescente.
      */
     private void geraRaizes(){
         listaRaizes = new ArrayList<Nodo>();
-        for (char letra: frequencias.keySet()) {
-            listaRaizes.add(new Nodo(letra, frequencias.get(letra)));
+        for (char letra: tabelaDeFrequencias.keySet()) {
+            listaRaizes.add(new Nodo(letra, tabelaDeFrequencias.get(letra)));
             insertionSortDesc(listaRaizes);
         }
     }
 
     /**
-     * Percorre a lista de raízes procurando as duas menores frequências e quando as encontra, utiliza o método auxiliar que une a raiz à árvore final.
+     * Percorre a lista de raízes procurando as duas menores frequências e quando as encontra,
+     * utiliza o método auxiliar adicionarRaizNaArvore que une a raiz à árvore final.
      */
     private void unirArvores(){
         while(listaRaizes.size() > 1){
@@ -96,19 +96,49 @@ public class Huffman {
     }
 
     /**
-     * Gera o código binário de cada caractere.
-     * Percorre a ordem em pŕe ordem, e a cada vez que percorre o próximo nodo, adiciona 0 se for pra esquerda e 1 à direita.
-     * Quando chega na folha, remove o último bit da String para poder prosseguir.
+     * Chama o método auxiliar codificaCaractere, que gera o código binário de cada caractere,
+     * gera um array de inteiros que representa o código binário da palavra e
+     * gera um arquivo com esse código binário com o método escreveArquivoBinario.
+     */
+    private void codificaPalavra(){
+        codificaCaractere();
+
+        // Gera um array com todos os caracteres da palavra inicial
+        char[] chars = palavra.toCharArray();
+        StringBuilder sb = new StringBuilder();
+
+        // Para cada caractere, adiciona na StringBuilder o código em binário referente àquela caractere
+        for (char c : chars)
+            sb.append(tabelaDeCodigosDosCaracteres.get(c));
+
+        // System.out.println(sb.toString());
+
+        // Transforma a StringBuilder de binparios em um array de inteiros
+        chars = sb.toString().toCharArray();
+        stringDeBits = new int[sb.length()];
+        for (int i = 0; i < chars.length; i++) {
+            stringDeBits[i] = Integer.parseInt(String.valueOf(chars[i]));
+        }
+        escreveArquivoBinario();
+        System.out.println("Codificação da palavra:   " + sb.toString());
+    }
+
+    /**
+     * Gera o código binário de cada caractere. Percorre a árvore em  pŕe ordem, e cada vez
+     * que percorre o próximo nodo, adiciona 0 se for pra esquerda e 1 à direita.
+     * Quando chega na folha, remove o último bit da String a cada retorno da recursão para poder prosseguir.
      */
     private void codificaCaractere(){
-        codigos = new HashMap<Character, String>();
+        tabelaDeCodigosDosCaracteres = new HashMap<Character, String>();
+        tabelaDeCaracteresDosCodigos = new HashMap<String, Character>();
         codificaCaractere0(raiz, new StringBuilder());
     }
 
     private void codificaCaractere0(Nodo nodo, StringBuilder sb) {
         if(nodo != null){
             if(nodo.caractere != ' ') {
-                codigos.put(nodo.caractere, sb.toString());
+                tabelaDeCodigosDosCaracteres.put(nodo.caractere, sb.toString());
+                tabelaDeCaracteresDosCodigos.put(sb.toString(), nodo.caractere);
             }
             if(nodo.esquerdo != null) {
                 codificaCaractere0(nodo.esquerdo, sb.append("0"));
@@ -123,37 +153,50 @@ public class Huffman {
     }
 
     /**
-     * Gera um array de inteiros que representa o código binário da árvore
+     * Chama o método auxiliar que lê o arquivo em binário, gera a String com codificação, e chama o método auxiliar
      */
-    private String geraStringBinaria(){
-        // Gera um array com todos os caracteres da palavra inicial
-        char[] chars = palavra.toCharArray();
+    public void decodifica(){
+        byte[] byteArray = leArquivoBinario();
         StringBuilder sb = new StringBuilder();
-
-        // Para cada caractere, adiciona na StringBuilder o código em binário referente àquela caractere
-        for (char c : chars)
-            sb.append(codigos.get(c));
-
-//        System.out.println(sb.toString());
-
-        // Transforma a StringBuilder de binparios em um array de inteiros
-        chars = sb.toString().toCharArray();
-        stringBinaria = new int[sb.length()];
-        for (int i = 0; i < chars.length; i++) {
-            stringBinaria[i] = Integer.parseInt(String.valueOf(chars[i]));
+        stringDeBits = new int[byteArray.length];
+        for (int i = 0; i < byteArray.length; i++) {
+            stringDeBits[i] = byteArray[i];
+            sb.append(stringDeBits[i]);
         }
-        return "Codificação da palavra: " + sb.toString();
+
+        System.out.println("Código do arquivo:        " + sb.toString());
+        decodificaCodigoBinario();
     }
 
-    public void decodificaCodigoBinario(byte[] byteArray){
-        StringBuilder sb = new StringBuilder();
-        String s = new String(byteArray);
-        System.out.println(s);
-        char[] chars = s.toCharArray();
-        for (char b : chars) {
-            sb.append(codigos.get(b));
+    private void decodificaCodigoBinario() {
+        StringBuilder sbAux = new StringBuilder();
+        StringBuilder palavraDecodificada = new StringBuilder();
+
+        int contAux;
+        boolean encontrou;
+        int cont = 0;
+
+        while (cont < stringDeBits.length) {
+            encontrou = false;
+            contAux = cont;
+            while (!encontrou) {
+                sbAux.append(stringDeBits[contAux]);
+
+                if (tabelaDeCaracteresDosCodigos.containsKey(sbAux.toString())) {
+//                    System.out.println(s);
+                    palavraDecodificada.append(String.valueOf(tabelaDeCaracteresDosCodigos.get(sbAux.toString())));
+                    sbAux.setLength(0);
+                    cont = contAux;
+                    encontrou = true;
+                }
+                else {
+                    contAux++;
+                }
+            }
+            cont++;
         }
-        System.out.println(sb.toString());
+
+        System.out.println("Decodificação do arquivo: "+palavraDecodificada.toString());
     }
 
     /**
@@ -183,9 +226,10 @@ public class Huffman {
         StringBuilder sb = new StringBuilder();
         Queue<Nodo> fila = new LinkedList<Nodo>();
         fila.add(raiz);
+        sb.append("\nGraphviz: \n\n");
         sb.append("digraph G {\n");
-        String nodo = null;
-        String aux = null;
+        String nodo;
+        String aux;
 
         while(!fila.isEmpty()){
             Nodo n = fila.remove();
@@ -214,13 +258,13 @@ public class Huffman {
         sb.append("\n}");
         return sb.toString();
     }
-    
-    public void escreveArquivoBinario () {
+
+    private void escreveArquivoBinario () {
         String caminhoArquivo = caminhoArquivoDeTeste;
 
-        byte[] bytes = new byte[stringBinaria.length];
+        byte[] bytes = new byte[stringDeBits.length];
         for (int i = 0; i < bytes.length; i++)
-            bytes[i] = (byte) stringBinaria[i];
+            bytes[i] = (byte) stringDeBits[i];
 
         try {
             File file = new File(caminhoArquivo);
@@ -235,9 +279,9 @@ public class Huffman {
         }
     }
 
-    public byte[] leArquivoBinario () {
+    private byte[] leArquivoBinario () {
         String caminhoArquivo = caminhoArquivoDeTeste;
-        FileInputStream fileInputStream=null;
+        FileInputStream fileInputStream = null;
 
         File file = new File(caminhoArquivo);
 
