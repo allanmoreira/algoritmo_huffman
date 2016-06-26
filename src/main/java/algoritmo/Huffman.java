@@ -15,7 +15,8 @@ public class Huffman {
     private HashMap<Character, String> tabelaDeCodigosDosCaracteres; // HashMap que sabe o código binário de cada caractere
     private HashMap<String, Character> tabelaDeCaracteresDosCodigos; // HashMap que sabe o caractere de cada código binário
     private HashMap<Character, Integer> tabelaDeFrequencias; // HashMap que sabe a frequência de cada caractere
-    private static String caminhoArquivoDeTeste = System.getProperty("user.dir")+File.separator+"teste_binario"+File.separator+"teste_arquivo";
+    private static String caminhoArquivoBinario = System.getProperty("user.dir")+File.separator+"teste_binario"+File.separator+"arquivo_binario";
+    private static String caminhoArquivoGerarGraphviz = System.getProperty("user.dir")+File.separator+"teste_binario"+File.separator+"arquivo_graphviz.gv";
 
     private class Nodo {
         Nodo direito;
@@ -111,8 +112,6 @@ public class Huffman {
         // Para cada caractere, adiciona na StringBuilder o código em binário referente àquela caractere
         for (char c : chars)
             sb.append(tabelaDeCodigosDosCaracteres.get(c));
-
-        // System.out.println(sb.toString());
 
         // Transforma a StringBuilder de binparios em um array de inteiros
         chars = sb.toString().toCharArray();
@@ -223,14 +222,15 @@ public class Huffman {
     /**
      * Percorre a árvore em largura, montando os dados do graphviz nível a nível
      */
-    public String geraGraphviz(){
+    public void geraGraphviz(){
         StringBuilder sb = new StringBuilder();
         Queue<Nodo> fila = new LinkedList<Nodo>();
         fila.add(raiz);
-        sb.append("\nGraphviz: \n\n");
+        System.out.println("\nGraphviz: \n\n");
         sb.append("digraph G {\n");
         String nodo;
         String aux;
+
 
         while(!fila.isEmpty()){
             Nodo n = fila.remove();
@@ -242,7 +242,8 @@ public class Huffman {
                 else
                     aux = "\""+n.esquerdo.frequencia+"\"\n";
 
-                sb.append("\t"+nodo+"->"+aux);
+                sb.append("\t").append(nodo).append("->").append(aux);
+
                 fila.add(n.esquerdo);
             }
             if(n.direito != null) {
@@ -252,16 +253,27 @@ public class Huffman {
                     aux = "\""+n.direito.frequencia+"\"\n";
 
                 sb.append("\t"+nodo+"->"+aux);
+
                 fila.add(n.direito);
             }
         }
         sb.delete(sb.length()-2, sb.length());
         sb.append("\n}");
-        return sb.toString();
+
+        try {
+            FileWriter fileWriter = new FileWriter(caminhoArquivoGerarGraphviz);
+            fileWriter.write(sb.toString());
+            fileWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println(sb.toString());
+
     }
 
     private void escreveArquivoBinario () {
-        String caminhoArquivo = caminhoArquivoDeTeste;
+        String caminhoArquivo = caminhoArquivoBinario;
 
         byte[] bytes = new byte[stringDeBits.length];
         for (int i = 0; i < bytes.length; i++)
@@ -281,7 +293,7 @@ public class Huffman {
     }
 
     private byte[] leArquivoBinario () {
-        String caminhoArquivo = caminhoArquivoDeTeste;
+        String caminhoArquivo = caminhoArquivoBinario;
         FileInputStream fileInputStream = null;
 
         File file = new File(caminhoArquivo);

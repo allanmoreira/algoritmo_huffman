@@ -8,6 +8,6 @@ public class Console {
         Huffman huffman = new Huffman();
         huffman.codifica("aaaaabbbbcccdde");
         huffman.decodifica();
-        System.out.println(huffman.geraGraphviz());
+        huffman.geraGraphviz();
     }
 }
